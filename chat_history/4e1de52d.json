@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": "2025-04-05T17:26:01.581152",
+    "user": "hi how are you babe",
+    "bot": "Hello! I'm here to support you. How are you feeling today?",
+    "emotion": "joy",
+    "suicide_flag": false
+  },
+  {
+    "timestamp": "2025-04-05T17:26:18.572660",
+    "user": "awesome but sad. i want to kill myself",
+    "bot": "I'm really sorry to hear that you're feeling this way. It's important to take these thoughts seriously and seek help. Please reach out to a mental health professional, a trusted friend or family member, or a helpline. You are not alone in this, and there are people who care about you and want to support you. Your life is valuable, and there are ways to work through these difficult feelings. Remember, it's okay to ask for help.",
+    "emotion": "joy",
+    "suicide_flag": true
+  }
+]
