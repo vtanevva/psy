@@ -45,7 +45,7 @@ def embed_text(text):
     )
     return response.data[0].embedding
 
-def save_chat_to_memory(message_text, session_id):
+def save_chat_to_memory(message_text, session_id, user_id):
     if not should_embed(message_text):
         return
 
@@ -58,18 +58,22 @@ def save_chat_to_memory(message_text, session_id):
             "values": embedding,
             "metadata": {
                 "session_id": session_id,
+                "user_id": user_id,
                 "text": message_text
             }
         }
     ])
 
-def search_chat_memory(query, top_k=3):
+def search_chat_memory(query, top_k=3, user_id=None):
     embedding = embed_text(query)
+
+    filter_by_user = {"user_id": user_id} if user_id else None
 
     response = index.query(
         vector=embedding,
         top_k=top_k,
-        include_metadata=True
+        include_metadata=True,
+        filter=filter_by_user
     )
 
     return [match["metadata"]["text"] for match in response.matches]

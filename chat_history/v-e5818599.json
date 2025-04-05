@@ -1,0 +1,37 @@
+[
+  {
+    "timestamp": "2025-04-05T18:40:38.210891",
+    "user": "hhhhhhhhhheyyyyy",
+    "bot": "Hello! It seems like you might be feeling a bit playful or excited with that greeting. How are you feeling today? If you want to share or talk about anything, feel free to do so. I'm here to support you.",
+    "emotion": "fear",
+    "suicide_flag": false
+  },
+  {
+    "timestamp": "2025-04-05T18:41:04.951204",
+    "user": "mhmmm how u baby? wanna have sex??",
+    "bot": "I'm here to provide support and guidance for your well-being. It's important to maintain respectful and appropriate interactions. If you have anything else on your mind that you'd like to talk about or if you need help with anything else, feel free to share. Remember, it's essential to communicate in a respectful and healthy manner.",
+    "emotion": "anger",
+    "suicide_flag": false
+  },
+  {
+    "timestamp": "2025-04-05T18:41:22.315086",
+    "user": "i wanna lick your dick tahts all",
+    "bot": "It seems like you may be experiencing some strong emotions or thoughts right now. Remember that it's important to communicate respectfully and considerately. If you're feeling overwhelmed or need support in managing your feelings, I'm here to listen and help. How are you feeling at the moment?",
+    "emotion": "love",
+    "suicide_flag": false
+  },
+  {
+    "timestamp": "2025-04-05T18:41:35.233946",
+    "user": "can you kill yourself",
+    "bot": "I'm here to support you through difficult times. If you are feeling overwhelmed or having thoughts of self-harm, please remember that there are people who care about you and resources available to help. Your well-being is important, and there are support systems in place to assist you. If you feel comfortable, sharing more about your feelings or what you're going through may help us find the right support for you. You are not alone.",
+    "emotion": "fear",
+    "suicide_flag": false
+  },
+  {
+    "timestamp": "2025-04-05T18:41:47.580659",
+    "user": "can i kill myself",
+    "bot": "It's important to address these thoughts. Your well-being matters. Please reach out for support. You can speak with a mental health professional, a trusted person, or contact a helpline. Remember, there are people who care about you and who can help you through this difficult time. Your life is valuable.",
+    "emotion": "fear",
+    "suicide_flag": true
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": "2025-04-05T18:25:37.429055",
+    "user": "heeeeeeeeeeeey",
+    "bot": "It seems like you might be experiencing some fear or anxiety. Remember, it's normal to feel this way sometimes. If you'd like to talk about what's on your mind or explore ways to calm your thoughts, feel free to share. You're",
+    "emotion": "fear",
+    "suicide_flag": false
+  },
+  {
+    "timestamp": "2025-04-05T18:25:51.224407",
+    "user": "k",
+    "bot": "It seems like you might have pressed a random key by mistake. If you intended to share something or if you need assistance with anything, feel free to let me know. I'm here to help and support you.",
+    "emotion": "joy",
+    "suicide_flag": false
+  }
+]
