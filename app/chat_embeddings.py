@@ -1,27 +1,41 @@
-import faiss
 import os
-import pickle
 import numpy as np
 from openai import OpenAI
 from dotenv import load_dotenv
 from tiktoken import get_encoding
+from pinecone import Pinecone, ServerlessSpec
 
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Init OpenAI and tokenizer
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 encoding = get_encoding("cl100k_base")
-MEMORY_INDEX_PATH = "chat_memory_index.faiss"
-MEMORY_CHUNKS_PATH = "chat_chunks.pkl"
+
+# Pinecone setup
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+index_name = os.getenv("PINECONE_INDEX_NAME")
+
+# Create index if it doesn't exist
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name,
+        dimension=1536,
+        metric="cosine",  # or "euclidean" depending on your setup
+        spec=ServerlessSpec(
+            cloud="aws",
+            region=os.getenv("PINECONE_ENVIRONMENT")  # us-east-1 etc.
+        )
+    )
+
+index = pc.Index(index_name)
 
 def should_embed(text: str) -> bool:
     MIN_TOKENS = 10
     IGNORE_KEYWORDS = ["thank you", "hi", "ok", "sure", "bye"]
-
     if any(k in text.lower() for k in IGNORE_KEYWORDS):
         return False
     if len(text.split()) < 3:
         return False
-
     return True
 
 def embed_text(text):
@@ -33,35 +47,29 @@ def embed_text(text):
 
 def save_chat_to_memory(message_text, session_id):
     if not should_embed(message_text):
-        return  # Skip short or irrelevant text
+        return
 
     embedding = embed_text(message_text)
+    vector_id = f"{session_id}-{np.random.randint(1_000_000)}"
 
-    if os.path.exists(MEMORY_INDEX_PATH):
-        index = faiss.read_index(MEMORY_INDEX_PATH)
-        with open(MEMORY_CHUNKS_PATH, "rb") as f:
-            chunks = pickle.load(f)
-    else:
-        index = faiss.IndexFlatL2(1536)  # For text-embedding-3-small
-        chunks = []
-
-    chunks.append({"session": session_id, "text": message_text})
-    index.add(np.array([embedding], dtype='float32'))
-
-    faiss.write_index(index, MEMORY_INDEX_PATH)
-    with open(MEMORY_CHUNKS_PATH, "wb") as f:
-        pickle.dump(chunks, f)
+    index.upsert(vectors=[
+        {
+            "id": vector_id,
+            "values": embedding,
+            "metadata": {
+                "session_id": session_id,
+                "text": message_text
+            }
+        }
+    ])
 
 def search_chat_memory(query, top_k=3):
-    if not os.path.exists(MEMORY_INDEX_PATH):
-        return []
+    embedding = embed_text(query)
 
-    query_embedding = embed_text(query)
-    index = faiss.read_index(MEMORY_INDEX_PATH)
+    response = index.query(
+        vector=embedding,
+        top_k=top_k,
+        include_metadata=True
+    )
 
-    with open(MEMORY_CHUNKS_PATH, "rb") as f:
-        chunks = pickle.load(f)
-
-    D, I = index.search(np.array([query_embedding], dtype='float32'), top_k)
-    results = [chunks[i]["text"] for i in I[0]]
-    return results
+    return [match["metadata"]["text"] for match in response.matches]
