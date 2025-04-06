@@ -3,13 +3,15 @@ import openai
 import faiss
 import pickle
 import numpy as np
+import openai
+import os
 from dotenv import load_dotenv
-from openai import OpenAI
 from typing import List
 from tiktoken import get_encoding
 
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 encoding = get_encoding("cl100k_base")
 
 def split_text(text: str, max_tokens=300) -> List[str]:
@@ -30,9 +32,9 @@ def split_text(text: str, max_tokens=300) -> List[str]:
     return chunks
 
 def embed_text_chunks(chunks: List[str]):
-    response = client.embeddings.create(
+    response = openai.Embedding.create(
         input=chunks,
-        model="text-embedding-3-small"
+        model="text-embedding-ada-002"
     )
     return [record.embedding for record in response.data]
 
@@ -63,9 +65,9 @@ def load_vector_store():
 def search_similar_chunks(user_query: str, top_k=3):
     index, chunks = load_vector_store()
     
-    query_embedding = client.embeddings.create(
-        input=[user_query],
-        model="text-embedding-3-small"
+    query_embedding = openai.Embedding.create(
+        input=user_query,
+        model="text-embedding-ada-002",
     ).data[0].embedding
 
     D, I = index.search(np.array([query_embedding], dtype='float32'), top_k)

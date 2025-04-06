@@ -1,12 +1,13 @@
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
-from emotion_detection import detect_emotion, detect_suicidal_intent
-from embeddings import search_similar_chunks
-from chat_embeddings import search_chat_memory
+import openai
+from .emotion_detection import detect_emotion, detect_suicidal_intent
+from .embeddings import search_similar_chunks
+from .chat_embeddings import search_chat_memory
+
 
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def chat_with_gpt(user_message, return_meta=False):
     emotion, _ = detect_emotion(user_message)
@@ -40,7 +41,7 @@ def chat_with_gpt(user_message, return_meta=False):
         {"role": "user", "content": f"{user_message}\n\n{safety_note}"}
     ]
 
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages,
         max_tokens=150,
