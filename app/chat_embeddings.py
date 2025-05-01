@@ -8,7 +8,7 @@ from pinecone import Pinecone, ServerlessSpec
 
 load_dotenv()
 
-# Init OpenAI and tokenizer
+# init OpenAI and tokenizer
 openai.api_key = os.getenv("OPENAI_API_KEY")
 encoding = get_encoding("cl100k_base")
 
@@ -17,7 +17,7 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index_name = os.getenv("PINECONE_INDEX_NAME")
 pinecone_env = os.getenv("PINECONE_ENVIRONMENT")
 
-# Create index if it doesn't exist
+# creating index if it doesn't exist
 if index_name not in pc.list_indexes().names():
     pc.create_index(
         name=index_name,
@@ -28,7 +28,7 @@ if index_name not in pc.list_indexes().names():
 
 index = pc.Index(index_name)
 
-# 🧠 Define what messages are worth embedding
+# what messages are worth embedding
 def should_embed(text: str) -> bool:
     MIN_TOKENS = 10
     IGNORE_KEYWORDS = ["thank you", "hi", "ok", "sure", "bye"]
@@ -38,7 +38,7 @@ def should_embed(text: str) -> bool:
         return False
     return True
 
-# 📥 Create embedding using OpenAI
+# embedding using OpenAI
 def embed_text(text):
     response = openai.Embedding.create(
         input=text,
@@ -46,7 +46,7 @@ def embed_text(text):
     )
     return response.data[0].embedding
 
-# 📝 Save to Pinecone under user's namespace
+# saving to Pinecone under user's namespace
 def save_chat_to_memory(message_text, session_id, user_id="default", emotion="neutral"):
     if not should_embed(message_text):
         return
@@ -67,10 +67,10 @@ def save_chat_to_memory(message_text, session_id, user_id="default", emotion="ne
                 }
             }
         ],
-        namespace=user_id  # 🧠 per-user memory space
+        namespace=user_id  # per-user memory space
     )
 
-# 🔍 Search memory for similar messages (user-specific)
+# search memory for similar messages (user specific)
 def search_chat_memory(query, top_k=3, user_id="default"):
     embedding = embed_text(query)
 
@@ -78,7 +78,7 @@ def search_chat_memory(query, top_k=3, user_id="default"):
         vector=embedding,
         top_k=top_k,
         include_metadata=True,
-        namespace=user_id  # 🔒 ensures personalized memory
+        namespace=user_id  # ensures personalized memory
     )
 
     return [match["metadata"]["text"] for match in response.matches]

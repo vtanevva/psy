@@ -53,9 +53,8 @@ def build_vector_store(file_path: str):
         pickle.dump(chunks, f)
     faiss.write_index(index, "rag_index.faiss")
 
-    print("✅ Vector store built and saved.")
+    print("Vector store built and saved.")
 
-# ✅ These must be OUTSIDE the __main__ block to allow importing
 def load_vector_store():
     index = faiss.read_index("rag_index.faiss")
     with open("rag_chunks.pkl", "rb") as f:
@@ -74,6 +73,6 @@ def search_similar_chunks(user_query: str, top_k=3):
     results = [chunks[i] for i in I[0]]
     return results
 
-# Optional: allow manual rebuild from CLI
+#  manual rebuild from CLI
 if __name__ == "__main__":
     build_vector_store("data/psychology_guide.txt")

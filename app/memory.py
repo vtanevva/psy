@@ -4,7 +4,6 @@ from datetime import datetime
 
 HISTORY_DIR = "chat_history"
 
-# Make sure directory exists
 os.makedirs(HISTORY_DIR, exist_ok=True)
 
 def get_history_path(session_id):

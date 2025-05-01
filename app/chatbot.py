@@ -19,10 +19,10 @@ def chat_with_gpt(user_message, return_meta=False):
     top_chunks = search_similar_chunks(user_message)
     data_context = "\n\n".join(top_chunks)
 
-    # ✅ Initialize safety_note before condition
+    # safety_note before condition
     safety_note = ""
 
-    # ✅ Only apply emotional support if the message has enough substance
+    # emotional support if the message has enough substance
     if len(user_message.split()) >= 3:
         if suicide_flag:
             safety_note = (
@@ -32,10 +32,10 @@ def chat_with_gpt(user_message, return_meta=False):
                 "- 113 Zelfmoordpreventie (NL): 0800-0113"
             )
         elif emotion in ["sadness", "fear"]:
-            safety_note = f"🧡 I hear you're feeling {emotion}. I'm here for you."
+            safety_note = f"I hear you're feeling {emotion}. I'm here for you."
 
     messages = [
-        {"role": "system", "content": "You are a gentle psychological assistant. Use context and memory to help the user calmly."},
+        {"role": "system", "content": "You are a therapist, you initiate conversation with the user aiming to build trust, encourage self-reflection, and gently guide them to explore their thoughts and emotions at their own pace."},
         {"role": "system", "content": f"User memory:\n{memory_context}"},
         {"role": "system", "content": f"Relevant psychological info:\n{data_context}"},
         {"role": "user", "content": f"{user_message}\n\n{safety_note}"}
@@ -44,7 +44,7 @@ def chat_with_gpt(user_message, return_meta=False):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages,
-        max_tokens=150,
+        max_tokens=80,
         temperature=0.7
     )
 

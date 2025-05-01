@@ -11,29 +11,29 @@ load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Get user ID and session
+# getting user ID and session
 user_id = input("Enter your username: ").strip().lower()
 session_id = f"{user_id}-{str(uuid.uuid4())[:8]}"
 
-print(f"🧠 New Session Started (User: {user_id} | Session ID: {session_id})")
+print(f"New Session Started (User: {user_id} | Session ID: {session_id})")
 print("Type 'exit' to quit.\n")
 
 while True:
     user_input = input("You: ")
     if user_input.lower() in ['exit', 'quit']:
-        print("👋 Ending session.")
+        print("Ending session.")
         break
 
-    # 🔍 Handle memory search
+    # memory search
     if user_input.lower().startswith("memory:"):
         query = user_input.replace("memory:", "").strip()
         results = search_chat_memory(query, user_id=user_id)
-        print("🧠 Top memory matches:")
+        print("Top memory matches:")
         for i, r in enumerate(results, 1):
             print(f"{i}. {r}")
         continue
 
-    # 📝 Handle summarize request
+    # summarize request
     if user_input.lower().startswith("summarize:"):
         messages = search_chat_memory("reflect on all", user_id=user_id)
         context = "\n".join(messages)
@@ -49,7 +49,7 @@ while True:
         continue
 
     try:
-        # 🌟 Main conversation logic
+        # main conversation logic
         reply, emotion, suicide_flag = chat_with_gpt(user_input, return_meta=True)
         print("Bot:", reply)
 
@@ -58,4 +58,4 @@ while True:
         save_chat_to_memory(f"Bot: {reply}", session_id, user_id=user_id)
 
     except Exception as e:
-        print("❌ An error occurred:", e)
+        print(" An error occurred:", e)

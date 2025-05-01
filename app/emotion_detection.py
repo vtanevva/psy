@@ -1,9 +1,8 @@
 from transformers import pipeline
 
-# Load emotion detection pipeline once
 emotion_classifier = pipeline("text-classification", model="bhadresh-savani/bert-base-uncased-emotion", top_k=1)
 
-# Keywords for suicide/self-harm detection (basic version)
+# keywords for suicide/self-harm detection - basic version
 SUICIDE_KEYWORDS = ["kill myself", "end it all", "suicidal", "I want to die", "self-harm", "can't go on", "hurt myself"]
 
 def detect_emotion(text):
