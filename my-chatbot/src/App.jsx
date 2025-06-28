@@ -5,34 +5,21 @@ function App() {
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState("");
-  const [sessionId, setSessionId] = useState("");
   const [entered, setEntered] = useState(false);
+  const [sessionId, setSessionId] = useState("");
 
-  // 🔁 Generate unique session ID
-  const generateSessionId = (user) => {
-    const random = Math.random().toString(36).substring(2, 10);
-    return `${user}-${random}`;
-  };
+  const generateSessionId = (id) => `${id}-${crypto.randomUUID().slice(0, 8)}`;
 
-  // 👤 Enter username
   const handleStart = (e) => {
     e.preventDefault();
-    const cleaned = userId.trim().toLowerCase();
-    if (cleaned) {
-      setUserId(cleaned);
-      setSessionId(generateSessionId(cleaned)); // 🆕 start unique session
+    if (userId.trim()) {
+      const cleanUser = userId.toLowerCase().trim();
+      setUserId(cleanUser);
+      setSessionId(generateSessionId(cleanUser));
       setEntered(true);
     }
   };
 
-  // 🆕 Start new conversation
-  const startNewConversation = () => {
-    setChat([]);
-    const newSessionId = generateSessionId(userId);
-    setSessionId(newSessionId);
-  };
-
-  // 📤 Send message
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -62,7 +49,11 @@ function App() {
     setLoading(false);
   };
 
-  // 👋 First screen to enter name
+  const handleNewSession = () => {
+    setSessionId(generateSessionId(userId));
+    setChat([]);
+  };
+
   if (!entered) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
@@ -87,20 +78,14 @@ function App() {
     );
   }
 
-  // 💬 Chat UI
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
       <h1 className="text-2xl font-bold mb-4">🧠 Psychology Chatbot</h1>
 
       <div className="w-full max-w-md bg-white rounded shadow p-4 flex-1 flex flex-col">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-600">🪪 Session ID: {sessionId}</span>
-          <button
-            className="text-blue-500 text-sm underline"
-            onClick={startNewConversation}
-          >
-            New Conversation
-          </button>
+        <div className="text-sm text-gray-600 mb-2">
+          <strong>User:</strong> {userId} &nbsp; | &nbsp;
+          <strong>Session:</strong> {sessionId}
         </div>
 
         <div className="flex-1 overflow-y-auto mb-4 space-y-2">
@@ -125,7 +110,7 @@ function App() {
           {loading && <div className="text-sm text-gray-500">Typing...</div>}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-2">
           <input
             className="border p-2 rounded flex-1"
             placeholder="Type your message..."
@@ -141,6 +126,13 @@ function App() {
             Send
           </button>
         </div>
+
+        <button
+          onClick={handleNewSession}
+          className="text-sm text-blue-500 underline"
+        >
+          🔁 Start New Chat
+        </button>
       </div>
     </div>
   );
