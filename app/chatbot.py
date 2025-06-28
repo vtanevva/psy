@@ -20,7 +20,9 @@ def chat_with_gpt(user_message, user_id="default",session_id=None, return_meta=F
     # 🧠 Get personalized FACT memory from Pinecone
     fact_list = get_user_facts(user_id=user_id)
     fact_memory = "\n".join(f"- {fact}" for fact in fact_list) if fact_list else "No known facts."
-    fact_summary = summarize_old_facts(user_id=user_id, exclude_session_id=session_id)
+
+    # 🧠 Summarize previous facts
+    fact_summary = summarize_old_facts("\n".join(fact_list)) if fact_list else "No past summary."
 
     # 📚 Get related RAG context (optional background info)
     top_chunks = search_similar_chunks(user_message)

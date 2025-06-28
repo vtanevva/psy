@@ -82,3 +82,74 @@ def search_chat_memory(query, top_k=3, user_id="default"):
     )
 
     return [match["metadata"]["text"] for match in response.matches]
+
+
+def get_user_facts(user_id, namespace=None):
+    if namespace is None:
+        namespace = user_id
+    try:
+        results = index.query(
+            vector=[0.0] * 1536,  # dummy vector
+            namespace=namespace,
+            top_k=100,
+            include_metadata=True
+        )
+        return [
+            m['metadata']['text']
+            for m in results['matches']
+            if m['metadata'].get('text', '').startswith("FACT:")
+        ]
+    except Exception as e:
+        print("❌ Error getting facts from Pinecone:", e)
+        return []
+
+
+def summarize_old_facts(context_text: str) -> str:
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are summarizing facts about a user to help a psychology chatbot remember important details."
+                },
+                {
+                    "role": "user",
+                    "content": f"Summarize these known facts about the user:\n\n{context_text}"
+                }
+            ],
+            max_tokens=150
+        )
+
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print("❌ Error in summarize_old_facts():", e)
+        return ""
+
+
+
+def extract_facts_with_gpt(user_input):
+    """
+    Extracts meaningful personal facts from user input using GPT.
+    """
+    try:
+        prompt = f"""Extract any personal facts from the following sentence. 
+Respond only with bullet points or 'None' if nothing is extractable.
+
+Sentence: "{user_input}"
+"""
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You extract factual statements from user inputs."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=100,
+            temperature=0
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print("❌ Error extracting facts:", e)
+        return "None"
