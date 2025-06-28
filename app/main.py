@@ -54,8 +54,16 @@ while True:
         print("Bot:", reply)
 
         save_message(session_id, user_input, reply, emotion, suicide_flag)
-        save_chat_to_memory(f"User: {user_input}", session_id, user_id=user_id, emotion=emotion)
-        save_chat_to_memory(f"Bot: {reply}", session_id, user_id=user_id)
+        from chat_embeddings import extract_facts_with_gpt
+
+        extracted_facts = extract_facts_with_gpt(user_message)
+        for line in extracted_facts.split("\n"):
+            line = line.strip("- ").strip()
+            if line and line.lower() != "none":
+                print(f"[🧠 FACT FOUND] {line}")
+                save_chat_to_memory(f"FACT: {line}", session_id, user_id=user_id, emotion=emotion)
 
     except Exception as e:
-        print(" An error occurred:", e)
+        import traceback
+        print("❌ An error occurred:")
+        traceback.print_exc()
