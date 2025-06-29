@@ -73,8 +73,8 @@ def chat_with_gpt(user_message, user_id="default",session_id=None, return_meta=F
     response = openai.ChatCompletion.create(
         model="gpt-4o",
         messages=messages,
-        max_tokens=150,
-        temperature=0.7
+        max_tokens=30,
+        temperature=0.8
     )
 
     reply = response.choices[0].message.content.strip()

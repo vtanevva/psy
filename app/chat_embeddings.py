@@ -133,15 +133,18 @@ def extract_facts_with_gpt(user_input):
     Extracts meaningful personal facts from user input using GPT.
     """
     try:
-        prompt = f"""Extract any personal facts from the following sentence. 
-Respond only with bullet points or 'None' if nothing is extractable.
+        prompt = f"""
+Extract factual personal statements from the following user input. 
+Examples include name, age, location, job, preferences, relationships, hobbies, beliefs, or anything that can be remembered.
+Respond with bullet points starting with 'FACT:'.
+Return 'None' if there is nothing to extract.
 
-Sentence: "{user_input}"
+User input: "{user_input}"
 """
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You extract factual statements from user inputs."},
+                {"role": "system", "content":"You are a fact extractor for a psychology chatbot. You help save user facts to memory."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=100,

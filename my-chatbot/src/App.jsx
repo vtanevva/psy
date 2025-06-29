@@ -26,6 +26,12 @@ const fetchSessions = async (id = userId) => {
   }
 };
 
+const speak = (text) => {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-US"; // You can change this to another language or accent
+  window.speechSynthesis.speak(utterance);
+};
+
 
   const handleStart = async (e) => {
   e.preventDefault();
