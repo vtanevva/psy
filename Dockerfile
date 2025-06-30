@@ -34,4 +34,4 @@ WORKDIR /app
 ENV PORT=10000
 
 # Start the app
-CMD ["gunicorn", "server:app", "-b", "0.0.0.0:$PORT"]
+CMD ["sh", "-c", "gunicorn server:app -b 0.0.0.0:$PORT"]
