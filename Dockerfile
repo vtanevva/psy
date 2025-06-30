@@ -31,7 +31,6 @@ RUN npm run build
 WORKDIR /app
 
 # Expose port (Render uses PORT env var)
-ENV PORT=10000
 
 # Start the app
 CMD ["sh", "-c", "gunicorn server:app -b 0.0.0.0:$PORT"]
