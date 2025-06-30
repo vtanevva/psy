@@ -154,4 +154,5 @@ def test_mongo():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5555)
+    port = int(os.environ.get("PORT", 5555))  # default only for local
+    app.run(host="0.0.0.0", port=port)
