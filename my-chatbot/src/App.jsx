@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import VoiceChat from "./pages/VoiceChat";
+const BASE_URL = import.meta.env.MODE === "development"
+  ? "http://127.0.0.1:5555"
+  : "https://https://psy-6vvf.onrender.com";
 
 
 
@@ -30,7 +33,7 @@ function App() {
 
   const fetchSessions = async (id = userId) => {
     try {
-      const res = await fetch("http://127.0.0.1:5555/sessions-log", {
+      const res = await fetch(`${BASE_URL}/session_chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: id }),
@@ -65,7 +68,7 @@ function App() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:5555/chat", {
+      const res = await fetch(`${BASE_URL}/session_chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -100,7 +103,7 @@ function App() {
     setSelectedSession(selected);
     setSessionId(selected);
     try {
-      const res = await fetch("http://127.0.0.1:5555/session_chat", {
+      const res = await fetch(`${BASE_URL}/session_chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, session_id: selected }),
