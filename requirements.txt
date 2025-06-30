@@ -9,3 +9,7 @@ numpy==1.26.4
 pinecone
 flask
 flask-cors
+pinecone-client
+pymongo
+dnspython
+axios
