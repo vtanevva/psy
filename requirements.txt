@@ -13,3 +13,4 @@ pinecone-client
 pymongo
 dnspython
 axios
+gunicorn
