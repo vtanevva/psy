@@ -1,5 +1,9 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import VoiceChat from "./pages/VoiceChat";
+
+
 
 function App() {
   const [input, setInput] = useState("");
@@ -13,6 +17,16 @@ function App() {
   const [useVoice, setUseVoice] = useState(false);
 
   const generateSessionId = (id) => `${id}-${crypto.randomUUID().slice(0, 8)}`;
+
+  const chatContainerRef = useRef(null);
+
+    useEffect(() => {
+      chatContainerRef.current?.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }, [chat]);
+
 
   const fetchSessions = async (id = userId) => {
     try {
@@ -62,7 +76,7 @@ function App() {
       });
 
       const data = await res.json();
-      const botMessage = { role: "bot", text: data.reply };
+      const botMessage = { role: "assistant", text: data.reply };
       setChat((prev) => [...prev, botMessage]);
     } catch (err) {
       console.error("❌ Error talking to backend:", err);
@@ -98,106 +112,110 @@ function App() {
     }
   };
 
-  if (!entered) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
-        <form onSubmit={handleStart} className="space-y-4 text-center">
-          <h1 className="text-2xl font-bold">🧠 Welcome to the Psychology Chatbot</h1>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col items-center p-6 relative overflow-hidden">
+      {!entered ? (
+        <form onSubmit={handleStart} className="text-center space-y-6 mt-32">
+          <img
+            src="/robot-emoji.png"
+            alt="Chatbot Logo"
+            className="max-w-full h-auto mb-4"          />1
+
           <input
             type="text"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             placeholder="Enter your name"
-            className="border border-gray-400 rounded px-4 py-2"
+            className="px-4 py-2 rounded-lg text-center text-white bg-white/10 border border-white/30 placeholder-white/60 focus:outline-none"
             required
           />
+          <br />
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
           >
             Start Chat
           </button>
         </form>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      <h1 className="text-2xl font-bold mb-4">🧠 Psychology Chatbot</h1>
-
-      <button
-        onClick={() => setUseVoice(!useVoice)}
-        className="mb-4 px-4 py-2 bg-purple-500 text-white rounded"
-      >
-        {useVoice ? "💬 Switch to Text Chat" : "🎙️ Switch to Voice Chat"}
-      </button>
-
-      {useVoice ? (
-        <VoiceChat userId={userId} sessionId={sessionId} />
+      ) : useVoice ? (
+      <VoiceChat userId={userId} sessionId={sessionId} setUseVoice={setUseVoice} />
       ) : (
-        <div className="w-full max-w-md bg-white rounded shadow p-4 flex-1 flex flex-col">
-          <div className="text-sm text-gray-600 mb-2">
-            <strong>User:</strong> {userId} &nbsp; | &nbsp;
-            <strong>Session:</strong> {sessionId}
+        <div className="w-full max-w-xl flex flex-col bg-white/10 backdrop-blur-lg p-6 rounded-3xl shadow-lg border border-white/20 mt-10">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-white/80 text-sm">
+              <span className="mr-4 font-semibold">👤 {userId}</span>
+              <span className="text-xs">Session: {sessionId.slice(-8)}</span>
+            </div>
+            <button
+              onClick={() => setUseVoice(!useVoice)}
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-lg text-sm hover:opacity-90"
+            >
+              {useVoice ? "💬 Switch to Text" : "🎙️ Switch to Voice"}
+            </button>
           </div>
 
           {sessions.length > 0 && (
-            <div className="mb-4">
-              <label className="text-sm text-gray-700">Past Sessions:</label>
+            <div className="mb-3">
+              <label className="text-white/70 text-sm">Choose Session:</label>
               <select
-                className="border border-gray-400 rounded p-1 ml-2"
+                className="ml-2 bg-white/20 text-white p-1 rounded text-sm"
                 value={selectedSession || ""}
                 onChange={handleSessionSelect}
               >
-                <option value="">-- Choose session --</option>
+                <option value="">-- select --</option>
                 {sessions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+          <div
+            ref={chatContainerRef}
+            className="overflow-y-auto space-y-4 px-2 mb-4"
+            style={{
+              height: "400px",
+              scrollBehavior: "smooth",
+            }}
+          >
+
             {chat.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
+              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`p-2 rounded-lg max-w-xs ${
-                    msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
+                  className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-lg ${
+                    msg.role === "user"
+                      ? "bg-blue-500 text-white rounded-br-none"
+                      : "bg-white/90 text-gray-800 rounded-bl-none"
                   }`}
                 >
                   {msg.text}
                 </div>
               </div>
             ))}
-            {loading && <div className="text-sm text-gray-500">Typing...</div>}
+            {loading && <div className="text-white text-sm">Typing...</div>}
           </div>
 
-          <div className="flex gap-2 mb-2">
+          <div className="flex gap-2">
             <input
-              className="border p-2 rounded flex-1"
-              placeholder="Type your message..."
+              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              className="flex-1 px-4 py-2 rounded-lg text-white bg-white/10 placeholder-white/60 border border-white/30 focus:outline-none"
+              placeholder="Share your thoughts..."
             />
             <button
-              className="bg-blue-500 text-white px-4 py-2 rounded"
               onClick={handleSend}
-              disabled={loading}
+              disabled={loading || !input.trim()}
+              className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
             >
-              Send
+              🚀
             </button>
           </div>
 
           <button
             onClick={handleNewSession}
-            className="text-sm text-blue-500 underline"
+            className="mt-3 text-sm text-white/70 underline hover:text-white"
           >
             🔁 Start New Chat
           </button>
