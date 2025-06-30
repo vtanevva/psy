@@ -64,7 +64,6 @@ def index():
     print("Root path hit")
     return "Psychology chatbot backend is running!"
 
-
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
@@ -78,16 +77,35 @@ def chat():
         return jsonify({"reply": "No message received. Please enter something."}), 400
 
     try:
-        # 💬 Generate GPT response with metadata
+        session_memory = []
+        chat_doc = conversations.find_one({"user_id": user_id, "session_id": session_id})
+        if chat_doc and "messages" in chat_doc:
+            last_messages = chat_doc["messages"][-20:]  # last 10 exchanges
+            for msg in last_messages:
+                role = msg["role"]
+                if role == "bot":
+                    role = "assistant"  # ✅ Fix role for GPT
+                session_memory.append({
+                    "role": role,
+                    "content": msg["text"]
+                })
+
+
+        # 💬 Generate GPT reply (pass memory)
         reply, emotion, suicide_flag = chat_with_gpt(
-            user_message, user_id=user_id, session_id=session_id, return_meta=True
+            user_message,
+            user_id=user_id,
+            session_id=session_id,
+            return_meta=True,
+            session_memory=session_memory
         )
+
         print("Reply from GPT:", reply)
 
         # 💾 Save full conversation to MongoDB
         save_message(user_id, session_id, user_message, reply, emotion, suicide_flag)
 
-        # 📌 Save extracted facts to Pinecone
+        # 📌 Extract facts (optional) and save to Pinecone
         extracted_facts = extract_facts_with_gpt(user_message)
         for line in extracted_facts.split("\n"):
             if line.strip().lower() != "none":
@@ -103,6 +121,7 @@ def chat():
     except Exception as e:
         print("GPT error:", e)
         return jsonify({"reply": "Something went wrong. Please try again."}), 500
+
 
 @app.route("/sessions-log", methods=["GET", "POST"])
 def get_sessions():
