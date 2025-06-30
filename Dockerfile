@@ -23,7 +23,7 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Build React frontend
-WORKDIR /app/my-chatbot
+WORKDIR /my-chatbot
 RUN npm install
 RUN npm run build
 
