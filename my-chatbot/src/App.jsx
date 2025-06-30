@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import VoiceChat from "./pages/VoiceChat";
 
 function App() {
   const [input, setInput] = useState("");
@@ -9,46 +10,37 @@ function App() {
   const [sessionId, setSessionId] = useState("");
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [useVoice, setUseVoice] = useState(false);
 
   const generateSessionId = (id) => `${id}-${crypto.randomUUID().slice(0, 8)}`;
 
-const fetchSessions = async (id = userId) => {
-  try {
-    const res = await fetch("http://127.0.0.1:5555/sessions-log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: id }),
-    });
-    const data = await res.json();
-    setSessions(data.sessions || []);
-  } catch (err) {
-    console.error("❌ Failed to fetch sessions:", err);
-  }
-};
-
-const speak = (text) => {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US"; // You can change this to another language or accent
-  window.speechSynthesis.speak(utterance);
-};
-
+  const fetchSessions = async (id = userId) => {
+    try {
+      const res = await fetch("http://127.0.0.1:5555/sessions-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: id }),
+      });
+      const data = await res.json();
+      setSessions(data.sessions || []);
+    } catch (err) {
+      console.error("❌ Failed to fetch sessions:", err);
+    }
+  };
 
   const handleStart = async (e) => {
-  e.preventDefault();
-  if (userId.trim()) {
-    const cleanUser = userId.toLowerCase().trim();
-    setUserId(cleanUser);
-    const newSession = generateSessionId(cleanUser);
-    setSessionId(newSession);
-    setEntered(true);
-
-    // 🧠 Wait a moment for state to settle, then fetch
-    setTimeout(() => {
-      fetchSessions(cleanUser);  // Pass userId directly
-    }, 200);
-  }
-};
-
+    e.preventDefault();
+    if (userId.trim()) {
+      const cleanUser = userId.toLowerCase().trim();
+      setUserId(cleanUser);
+      const newSession = generateSessionId(cleanUser);
+      setSessionId(newSession);
+      setEntered(true);
+      setTimeout(() => {
+        fetchSessions(cleanUser);
+      }, 200);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -80,17 +72,14 @@ const speak = (text) => {
   };
 
   const handleNewSession = () => {
-  const newSessionId = generateSessionId(userId);
-  setSessionId(newSessionId);
-  setChat([]);
-  setSelectedSession(null);
-
-  // ✅ Live update session dropdown
-  setTimeout(() => {
-    fetchSessions();
-  }, 200);
-};
-
+    const newSessionId = generateSessionId(userId);
+    setSessionId(newSessionId);
+    setChat([]);
+    setSelectedSession(null);
+    setTimeout(() => {
+      fetchSessions();
+    }, 200);
+  };
 
   const handleSessionSelect = async (e) => {
     const selected = e.target.value;
@@ -137,72 +126,83 @@ const speak = (text) => {
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
       <h1 className="text-2xl font-bold mb-4">🧠 Psychology Chatbot</h1>
 
-      <div className="w-full max-w-md bg-white rounded shadow p-4 flex-1 flex flex-col">
-        <div className="text-sm text-gray-600 mb-2">
-          <strong>User:</strong> {userId} &nbsp; | &nbsp;
-          <strong>Session:</strong> {sessionId}
-        </div>
+      <button
+        onClick={() => setUseVoice(!useVoice)}
+        className="mb-4 px-4 py-2 bg-purple-500 text-white rounded"
+      >
+        {useVoice ? "💬 Switch to Text Chat" : "🎙️ Switch to Voice Chat"}
+      </button>
 
-        {sessions.length > 0 && (
-          <div className="mb-4">
-            <label className="text-sm text-gray-700">Past Sessions:</label>
-            <select
-              className="border border-gray-400 rounded p-1 ml-2"
-              value={selectedSession || ""}
-              onChange={handleSessionSelect}
-            >
-              <option value="">-- Choose session --</option>
-              {sessions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+      {useVoice ? (
+        <VoiceChat userId={userId} sessionId={sessionId} />
+      ) : (
+        <div className="w-full max-w-md bg-white rounded shadow p-4 flex-1 flex flex-col">
+          <div className="text-sm text-gray-600 mb-2">
+            <strong>User:</strong> {userId} &nbsp; | &nbsp;
+            <strong>Session:</strong> {sessionId}
           </div>
-        )}
 
-        <div className="flex-1 overflow-y-auto mb-4 space-y-2">
-          {chat.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`p-2 rounded-lg max-w-xs ${
-                  msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
-                }`}
+          {sessions.length > 0 && (
+            <div className="mb-4">
+              <label className="text-sm text-gray-700">Past Sessions:</label>
+              <select
+                className="border border-gray-400 rounded p-1 ml-2"
+                value={selectedSession || ""}
+                onChange={handleSessionSelect}
               >
-                {msg.text}
-              </div>
+                <option value="">-- Choose session --</option>
+                {sessions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
-          {loading && <div className="text-sm text-gray-500">Typing...</div>}
-        </div>
+          )}
 
-        <div className="flex gap-2 mb-2">
-          <input
-            className="border p-2 rounded flex-1"
-            placeholder="Type your message..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          />
+          <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+            {chat.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`p-2 rounded-lg max-w-xs ${
+                    msg.role === "user" ? "bg-blue-100 text-right" : "bg-gray-200 text-left"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            {loading && <div className="text-sm text-gray-500">Typing...</div>}
+          </div>
+
+          <div className="flex gap-2 mb-2">
+            <input
+              className="border p-2 rounded flex-1"
+              placeholder="Type your message..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            />
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={handleSend}
+              disabled={loading}
+            >
+              Send
+            </button>
+          </div>
+
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            onClick={handleSend}
-            disabled={loading}
+            onClick={handleNewSession}
+            className="text-sm text-blue-500 underline"
           >
-            Send
+            🔁 Start New Chat
           </button>
         </div>
-
-        <button
-          onClick={handleNewSession}
-          className="text-sm text-blue-500 underline"
-        >
-          🔁 Start New Chat
-        </button>
-      </div>
+      )}
     </div>
   );
 }

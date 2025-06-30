@@ -1,13 +1,10 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 
-export default function VoiceChat() {
+export default function VoiceChat({ userId, sessionId }) {
   const [text, setText] = useState('');
   const [response, setResponse] = useState('');
   const recognitionRef = useRef(null);
-  const [userId, setUserId] = useState("vanesa"); // default for testing
-  const sessionId = `${userId}-${crypto.randomUUID().slice(0, 8)}`;
-
 
   const handleStart = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -47,7 +44,6 @@ export default function VoiceChat() {
         user_id: userId,
         message: userInput,
         session_id: sessionId,
-
       });
 
       const botReply = res.data.reply;
@@ -65,22 +61,15 @@ export default function VoiceChat() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <h1 className="text-2xl font-bold mb-4">🎙️ Voice Chat with Bot</h1>
-      <input
-        type="text"
-        placeholder="Enter your name"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-        className="mb-4 p-2 border rounded"
-      />
+    <div className="flex flex-col items-center justify-center p-4">
+      <h2 className="text-xl font-bold mb-4">🎙️ Voice Chat</h2>
 
       <div className="mb-2">
-        <button onClick={handleStart} className="px-4 py-2 bg-blue-500 text-white rounded mr-2">
-          🎤 Start Talking
+        <button onClick={handleStart} className="bg-blue-500 text-white px-4 py-2 rounded mr-2">
+          Start Talking
         </button>
-        <button onClick={handleStop} className="px-4 py-2 bg-red-500 text-white rounded">
-          🛑 Stop
+        <button onClick={handleStop} className="bg-red-500 text-white px-4 py-2 rounded">
+          Stop
         </button>
       </div>
 

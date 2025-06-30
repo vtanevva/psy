@@ -13,7 +13,10 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def chat_with_gpt(user_message, user_id="default",session_id=None, return_meta=False):
-    # 🔍 Emotion + Crisis Detection
+    
+    wants_detail = any(word in user_message.lower() for word in ["why", "explain", "details", "how", "in depth", "give me", "what does"])
+
+
     emotion, _ = detect_emotion(user_message)
     suicide_flag = detect_suicidal_intent(user_message)
 
@@ -46,7 +49,7 @@ def chat_with_gpt(user_message, user_id="default",session_id=None, return_meta=F
         {
             "role": "system",
             "content": (
-                "You are a compassionate psychology chatbot. The user may have talked to you before.\n"
+                "You are a friendly, human-like psychology chatbot named Anyma. Respond casually and naturally, like you're talking to a friend. Keep responses short unless the user asks for detailed help. Use contractions, emojis occasionally, and speak in a relatable way. Don’t sound like an AI assistant. The user may have talked to you before.\n"
                 f"Here are some personal facts you've learned about them:\n{fact_memory}\n"
                 f"Here is what you've learned about the user from past conversations:\n{fact_summary}\n"
                 "Use these facts to personalize your replies when relevant."
@@ -73,7 +76,7 @@ def chat_with_gpt(user_message, user_id="default",session_id=None, return_meta=F
     response = openai.ChatCompletion.create(
         model="gpt-4o",
         messages=messages,
-        max_tokens=30,
+        max_tokens=300 if wants_detail else 100,
         temperature=0.8
     )
 
