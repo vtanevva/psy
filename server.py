@@ -135,17 +135,23 @@ def get_sessions():
     session_list = [s["session_id"] for s in sessions]
     return jsonify({"sessions": session_list})
 
-@app.route("/sessions-log", methods=["GET"])
-def reject_sessions_get():
-    return jsonify({"error": "GET not allowed. Use POST with JSON."}), 405
-
-
 @app.route("/session_chat", methods=["POST"])
 def session_chat():
-    user_id = request.json.get("user_id")
-    session_id = request.json.get("session_id")
-    entry = conversations.find_one({"user_id": user_id, "session_id": session_id})
-    return jsonify({"chat": entry.get("messages", []) if entry else []})
+    data = request.get_json()
+    print("📩 Received data:", data)
+
+    user_id = data.get("user_id")
+    session_id = data.get("session_id")
+
+    if session_id:
+        # Return full chat history for that session
+        entry = conversations.find_one({"user_id": user_id, "session_id": session_id})
+        return jsonify({"chat": entry.get("messages", []) if entry else []})
+    else:
+        # Return list of session IDs
+        sessions = conversations.find({"user_id": user_id}, {"session_id": 1, "_id": 0})
+        session_list = [s["session_id"] for s in sessions]
+        return jsonify({"sessions": session_list})
 
 @app.route("/test-mongo")
 def test_mongo():
