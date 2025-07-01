@@ -15,6 +15,10 @@ export default function VoiceChat({ userId, sessionId, setUseVoice }) {
   const recognitionRef = useRef(null)
   const chatContainerRef = useRef(null)
   const navigate = useNavigate()
+  const [isNaming, setIsNaming] = useState(false);  // to toggle name input
+  const [tempName, setTempName] = useState("");     // user types name here
+
+
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -100,12 +104,12 @@ export default function VoiceChat({ userId, sessionId, setUseVoice }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       <div className="w-full max-w-3xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl overflow-hidden">
-        <div className="p-6 bg-gradient-to-r from-indigo-500/30 to-blue-500/30 flex items-center justify-between">
+      <div className="p-6 bg-white/10 backdrop-blur-lg border-b border-white/20 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white">🎤 Voice Chat Mode</h2>
+            <h2 className="text-2xl font-bold text-white">Voice Chat Mode   </h2>
             <p className="text-sm text-white/70">User: {userId} | Session: {sessionId.slice(-8)}</p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 ml-8">
             <button
               onClick={() => setShowChat(!showChat)}
               className="text-white text-sm px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md transition"
@@ -134,7 +138,7 @@ export default function VoiceChat({ userId, sessionId, setUseVoice }) {
               {loading && <div className="text-sm text-white/50 animate-pulse">🤖 Thinking...</div>}
             </div>
 
-            <div className="p-4 border-t border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+<div className="p-4 border-t border-white/10 bg-white/10 backdrop-blur-md">
               <div className="flex gap-2">
                 <input
                   className="flex-1 bg-white/20 backdrop-blur-md text-white p-2 rounded-xl placeholder-white/60 focus:outline-none"

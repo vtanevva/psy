@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import VoiceChat from "./pages/VoiceChat";
+import Dropdown from "./pages/Dropdown"; // or wherever you placed it
 
 
 
@@ -15,6 +16,7 @@ function App() {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [useVoice, setUseVoice] = useState(false);
+const [sessionName, setSessionName] = useState("");
 
   const generateSessionId = (id) => `${id}-${crypto.randomUUID().slice(0, 8)}`;
 
@@ -86,14 +88,36 @@ function App() {
   };
 
   const handleNewSession = () => {
-    const newSessionId = generateSessionId(userId);
-    setSessionId(newSessionId);
-    setChat([]);
-    setSelectedSession(null);
-    setTimeout(() => {
-      fetchSessions();
-    }, 200);
-  };
+  const newSessionId = generateSessionId(userId);
+
+  const name = prompt("Name this session:");
+
+  if (!name) {
+    alert("You must enter a name to create a new session.");
+    return;
+  }
+
+  setSessionId(newSessionId);
+  setChat([]);
+  setSelectedSession(null);
+  setSessionName(name);
+
+  // Send name to backend
+  fetch("http://127.0.0.1:5555/save-session-name", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: userId,
+      session_id: newSessionId,
+      name: name,
+    }),
+  });
+
+  setTimeout(() => {
+    fetchSessions();
+  }, 200);
+};
+
 
   const handleSessionSelect = async (e) => {
     const selected = e.target.value;
@@ -155,20 +179,21 @@ function App() {
           </div>
 
           {sessions.length > 0 && (
-            <div className="mb-3">
-              <label className="text-white/70 text-sm">Choose Session:</label>
-              <select
-                className="ml-2 bg-white/20 text-white p-1 rounded text-sm"
-                value={selectedSession || ""}
-                onChange={handleSessionSelect}
-              >
-                <option value="">-- select --</option>
-                {sessions.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-          )}
+  <Dropdown
+    sessions={sessions}
+    selectedSession={selectedSession}
+    onSelect={(value) => {
+      setSelectedSession(value);
+      setSessionId(value);
+      handleSessionSelect({ target: { value } });
+    }}
+  />
+)}
+
+
+
+
+
 
           <div
             ref={chatContainerRef}

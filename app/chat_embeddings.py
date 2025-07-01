@@ -135,7 +135,7 @@ def extract_facts_with_gpt(user_input):
     try:
         prompt = f"""
 Extract factual personal statements from the following user input. 
-Examples include name, age, location, job, preferences, relationships, hobbies, beliefs, or anything that can be remembered.
+Examples include name, age, location, job, preferences, relationships, hobbies, beliefs, or anything that can be remembered. Don't use emojis.
 Respond with bullet points starting with 'FACT:'.
 Return 'None' if there is nothing to extract.
 

@@ -135,10 +135,27 @@ def get_sessions():
     session_list = [s["session_id"] for s in sessions]
     return jsonify({"sessions": session_list})
 
-@app.route("/sessions-log", methods=["GET"])
-def reject_sessions_get():
-    return jsonify({"error": "GET not allowed. Use POST with JSON."}), 405
+@app.route("/sessions-log", methods=["POST"])
+def sessions_log():
+    data = request.get_json()
+    user_id = data.get("user_id")
 
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+
+    # Fetch distinct sessions for the user
+    sessions = db.conversations.find({"user_id": user_id})
+    
+    # Collect unique session IDs and their latest name
+    session_map = {}
+    for convo in sessions:
+        sid = convo.get("session_id")
+        name = convo.get("session_name", "")
+        session_map[sid] = name  # Overwrite keeps latest name
+
+    session_list = [{"session_id": sid, "name": session_map[sid]} for sid in sorted(session_map)]
+
+    return jsonify({"sessions": session_list})
 
 @app.route("/session_chat", methods=["POST"])
 def session_chat():
@@ -151,6 +168,20 @@ def session_chat():
 def test_mongo():
     conversations.insert_one({"msg": "Mongo is working!", "timestamp": datetime.utcnow()})
     return jsonify({"status": "success"})
+
+@app.route("/save-session-name", methods=["POST"])
+def save_session_name():
+    data = request.get_json()
+    user_id = data["user_id"]
+    session_id = data["session_id"]
+    name = data["name"]
+
+    db.conversations.update_one(
+        {"user_id": user_id, "session_id": session_id},
+        {"$set": {"session_name": name}},
+        upsert=True
+    )
+    return jsonify({"status": "ok"})
 
 
 if __name__ == "__main__":

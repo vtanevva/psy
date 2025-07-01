@@ -5,6 +5,7 @@ import App from './App';
 // import VoiceChat from './pages/VoiceChat'; // ✅ make sure path is correct
 import './index.css';
 
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Routes>
