@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import VoiceChat from "./pages/VoiceChat";
 const BASE_URL = import.meta.env.MODE === "development"
-  ? "http://127.0.0.1:5555"
+  ? "http://http://192.168.0.102:5555"
   : "https://https://psy-6vvf.onrender.com";
 
 
