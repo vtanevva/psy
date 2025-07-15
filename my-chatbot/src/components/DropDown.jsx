@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 
 export default function Dropdown({
-  sessions = [],
+  sessions = [],               // Array of { session_id, name }
   selectedSession,
-  onSelect,
+  onSelect,                    // Will be passed session_id
 }) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -41,19 +41,19 @@ export default function Dropdown({
 
       {/* Dropdown List */}
       {open && (
-        <ul className="absolute left-0 mt-2 w-40 max-h-28 overflow-y-auto bg-gradient-to-br from-purple-800 via-indigo-900 to-pink-900 text-black text-sm rounded-lg shadow-lg z-50">
+        <ul className="absolute left-0 mt-2 w-44 max-h-40 overflow-y-auto bg-gradient-to-br from-purple-800 via-indigo-900 to-pink-900 text-white text-sm rounded-lg shadow-lg z-50">
           {sessions.map((s) => (
             <li
-              key={s}
+              key={s.session_id}
               onClick={() => {
-                onSelect(s);
+                onSelect(s.session_id);
                 setOpen(false);
               }}
               className={`px-3 py-2 hover:bg-white/20 cursor-pointer ${
-                selectedSession === s ? "bg-white/30 text-white font-medium" : ""
+                selectedSession === s.session_id ? "bg-white/30 text-white font-medium" : ""
               }`}
             >
-              {s}
+              {s.name || s.session_id.slice(-8)} {/* fallback if no name */}
             </li>
           ))}
         </ul>

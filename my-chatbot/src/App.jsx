@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import VoiceChat from "./pages/VoiceChat";
-import Dropdown from "./pages/Dropdown"; // or wherever you placed it
-
-
+import Dropdown from "./pages/Dropdown";
 
 function App() {
   const [input, setInput] = useState("");
@@ -16,19 +14,18 @@ function App() {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [useVoice, setUseVoice] = useState(false);
-const [sessionName, setSessionName] = useState("");
+  const [sessionName, setSessionName] = useState("");
 
   const generateSessionId = (id) => `${id}-${crypto.randomUUID().slice(0, 8)}`;
 
   const chatContainerRef = useRef(null);
 
-    useEffect(() => {
-      chatContainerRef.current?.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }, [chat]);
-
+  useEffect(() => {
+    chatContainerRef.current?.scrollTo({
+      top: chatContainerRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [chat]);
 
   const fetchSessions = async (id = userId) => {
     try {
@@ -44,25 +41,76 @@ const [sessionName, setSessionName] = useState("");
     }
   };
 
+  const generateSessionName = async (messages) => {
+    if (!messages || messages.length < 3) return;
+    try {
+      const facts = messages.map((m) => `- ${m.text}`).join("\n");
+      const prompt = `
+        Based on this short conversation, generate a short, relevant title (max 6 words). 
+        Use the user's intent, topic, or tone.
+
+        Conversation:
+        ${facts}
+
+        Title:
+      `;
+
+      const res = await fetch("http://127.0.0.1:5555/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: prompt,
+          user_id: userId,
+          session_id: sessionId,
+        }),
+      });
+
+      const data = await res.json();
+      const name = data.reply.trim().replace(/^\"|\"$/g, "");
+      setSessionName(name);
+
+      await fetch("http://127.0.0.1:5555/save-session-name", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          session_id: sessionId,
+          name,
+        }),
+      });
+
+      setTimeout(() => {
+        fetchSessions();
+      }, 200);
+    } catch (err) {
+      console.error("❌ Failed to generate session name:", err);
+    }
+  };
+
   const handleStart = async (e) => {
     e.preventDefault();
-    if (userId.trim()) {
-      const cleanUser = userId.toLowerCase().trim();
-      setUserId(cleanUser);
-      const newSession = generateSessionId(cleanUser);
-      setSessionId(newSession);
-      setEntered(true);
-      setTimeout(() => {
-        fetchSessions(cleanUser);
-      }, 200);
-    }
+    const cleanUser = userId.toLowerCase().trim();
+    if (!cleanUser) return;
+
+    const newSession = generateSessionId(cleanUser);
+    setUserId(cleanUser);
+    setSessionId(newSession);
+    setEntered(true);
+    setChat([]);
+    setSelectedSession(null);
+    setSessionName("");
+
+    setTimeout(() => {
+      fetchSessions(cleanUser);
+    }, 300);
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = { role: "user", text: input };
-    setChat((prev) => [...prev, userMessage]);
+    const updatedChat = [...chat, userMessage];
+    setChat(updatedChat);
     setInput("");
     setLoading(true);
 
@@ -79,7 +127,13 @@ const [sessionName, setSessionName] = useState("");
 
       const data = await res.json();
       const botMessage = { role: "assistant", text: data.reply };
-      setChat((prev) => [...prev, botMessage]);
+      const newChat = [...updatedChat, botMessage];
+      setChat(newChat);
+
+      const userMessages = newChat.filter((msg) => msg.role === "user");
+      if (userMessages.length === 3 && sessionName === "" && newChat.length >= 5) {
+        generateSessionName(newChat);
+      }
     } catch (err) {
       console.error("❌ Error talking to backend:", err);
     }
@@ -88,36 +142,15 @@ const [sessionName, setSessionName] = useState("");
   };
 
   const handleNewSession = () => {
-  const newSessionId = generateSessionId(userId);
-
-  const name = prompt("Name this session:");
-
-  if (!name) {
-    alert("You must enter a name to create a new session.");
-    return;
-  }
-
-  setSessionId(newSessionId);
-  setChat([]);
-  setSelectedSession(null);
-  setSessionName(name);
-
-  // Send name to backend
-  fetch("http://127.0.0.1:5555/save-session-name", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user_id: userId,
-      session_id: newSessionId,
-      name: name,
-    }),
-  });
-
-  setTimeout(() => {
-    fetchSessions();
-  }, 200);
-};
-
+    const newSessionId = generateSessionId(userId);
+    setSessionId(newSessionId);
+    setChat([]);
+    setSelectedSession(null);
+    setSessionName("");
+    setTimeout(() => {
+      fetchSessions();
+    }, 200);
+  };
 
   const handleSessionSelect = async (e) => {
     const selected = e.target.value;
@@ -140,11 +173,7 @@ const [sessionName, setSessionName] = useState("");
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col items-center p-6 relative overflow-hidden">
       {!entered ? (
         <form onSubmit={handleStart} className="text-center space-y-6 mt-32">
-          <img
-            src="/robot-emoji.png"
-            alt="Chatbot Logo"
-            className="max-w-full h-auto mb-4"          />1
-
+          <img src="/robot-emoji.png" alt="Chatbot Logo" className="max-w-full h-auto mb-4" />
           <input
             type="text"
             value={userId}
@@ -154,15 +183,12 @@ const [sessionName, setSessionName] = useState("");
             required
           />
           <br />
-          <button
-            type="submit"
-            className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
-          >
+          <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
             Start Chat
           </button>
         </form>
       ) : useVoice ? (
-      <VoiceChat userId={userId} sessionId={sessionId} setUseVoice={setUseVoice} />
+        <VoiceChat userId={userId} sessionId={sessionId} setUseVoice={setUseVoice} />
       ) : (
         <div className="w-full max-w-xl flex flex-col bg-white/10 backdrop-blur-lg p-6 rounded-3xl shadow-lg border border-white/20 mt-10">
           <div className="flex justify-between items-center mb-4">
@@ -179,31 +205,22 @@ const [sessionName, setSessionName] = useState("");
           </div>
 
           {sessions.length > 0 && (
-  <Dropdown
-    sessions={sessions}
-    selectedSession={selectedSession}
-    onSelect={(value) => {
-      setSelectedSession(value);
-      setSessionId(value);
-      handleSessionSelect({ target: { value } });
-    }}
-  />
-)}
-
-
-
-
-
+            <Dropdown
+              sessions={sessions}
+              selectedSession={selectedSession}
+              onSelect={(value) => {
+                setSelectedSession(value);
+                setSessionId(value);
+                handleSessionSelect({ target: { value } });
+              }}
+            />
+          )}
 
           <div
             ref={chatContainerRef}
             className="overflow-y-auto space-y-4 px-2 mb-4"
-            style={{
-              height: "400px",
-              scrollBehavior: "smooth",
-            }}
+            style={{ height: "400px", scrollBehavior: "smooth" }}
           >
-
             {chat.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
