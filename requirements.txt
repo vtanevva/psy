@@ -1,7 +1,7 @@
 openai==0.28
 python-dotenv
 faiss-cpu
-torch==2.1.0
+torch==2.7.1+cpu
 torchvision==0.16.0
 transformers==4.38.2
 --extra-index-url https://download.pytorch.org/whl/cpu
