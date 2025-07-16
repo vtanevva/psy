@@ -140,4 +140,5 @@ def serve_frontend(path):
 
 # ============ RUN LOCALLY ============
 if __name__ == "__main__":
-    app.run(debug=True, port=5555)
+    port = int(os.environ.get("PORT", 5555))  # Use Render's PORT or fallback
+    app.run(host="0.0.0.0", port=port)
