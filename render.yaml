@@ -15,6 +15,4 @@ services:
         sync: false
       - key: PINECONE_ENV
         sync: false
-      - key: PORT
-        value: "10000"
     rootDir: .
