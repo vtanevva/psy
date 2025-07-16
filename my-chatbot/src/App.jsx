@@ -29,7 +29,7 @@ function App() {
 
   const fetchSessions = async (id = userId) => {
     try {
-      const res = await fetch("http://127.0.0.1:5555/sessions-log", {
+      const res = await fetch("/api/sessions-log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: id }),
@@ -55,7 +55,7 @@ function App() {
         Title:
       `;
 
-      const res = await fetch("http://127.0.0.1:5555/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -69,7 +69,7 @@ function App() {
       const name = data.reply.trim().replace(/^\"|\"$/g, "");
       setSessionName(name);
 
-      await fetch("http://127.0.0.1:5555/save-session-name", {
+      await fetch("/api/save-session-name", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -115,7 +115,7 @@ function App() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:5555/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -157,7 +157,7 @@ function App() {
     setSelectedSession(selected);
     setSessionId(selected);
     try {
-      const res = await fetch("http://127.0.0.1:5555/session_chat", {
+      const res = await fetch("/api/session_chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, session_id: selected }),

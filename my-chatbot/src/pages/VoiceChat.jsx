@@ -70,7 +70,7 @@ export default function VoiceChat({ userId, sessionId, setUseVoice }) {
     setLoading(true)
 
     try {
-      const res = await axios.post("http://127.0.0.1:5555/chat", {
+      const res = await axios.post("/api/chat", {
         message: msg,
         user_id: userId,
         session_id: sessionId,
