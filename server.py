@@ -17,11 +17,24 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 # ------------------------------------------------------------------------------
 # Config / DB
 # ------------------------------------------------------------------------------
+# Load .env variables
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI) if MONGO_URI else None
-db = client.chatbot_db if client else None
-conversations = db.conversations if db else None
+
+if not MONGO_URI:
+    raise RuntimeError("MONGO_URI environment variable not set.")
+
+client = MongoClient(MONGO_URI)
+
+# Try to honor DB from URI; fallback
+try:
+    db = client.get_database()
+except Exception:
+    db = client["chatbot_db"]
+
+conversations = db["conversations"]
+
+print(f"[INIT] Mongo connected. DB={db.name}", flush=True)
 
 # ------------------------------------------------------------------------------
 # Local imports (your modules)
