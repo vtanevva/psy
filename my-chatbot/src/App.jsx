@@ -16,18 +16,20 @@ function App() {
   const [useVoice, setUseVoice] = useState(false);
   const [sessionName, setSessionName] = useState("");
 
+  const chatContainerRef = useRef(null);
   const generateSessionId = (id) => `${id}-${crypto.randomUUID().slice(0, 8)}`;
 
-  const chatContainerRef = useRef(null);
-
+  // auto-scroll on new chat
   useEffect(() => {
-    chatContainerRef.current?.scrollTo({
-      top: chatContainerRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    const el = chatContainerRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }
   }, [chat]);
 
+  // fetch sessions for user
   const fetchSessions = async (id = userId) => {
+    if (!id) return;
     try {
       const res = await fetch("/api/sessions-log", {
         method: "POST",
@@ -41,19 +43,23 @@ function App() {
     }
   };
 
+  // auto-generate session title (after 3 user msgs)
   const generateSessionName = async (messages) => {
-    if (!messages || messages.length < 3) return;
+    if (!messages || messages.length < 5) return; // guard: need at least 3 user + bot replies
+    const userMsgs = messages.filter((m) => m.role === "user");
+    if (userMsgs.length < 3) return;
+
     try {
       const facts = messages.map((m) => `- ${m.text}`).join("\n");
       const prompt = `
-        Based on this short conversation, generate a short, relevant title (max 6 words). 
-        Use the user's intent, topic, or tone.
+Based on this short conversation, generate a short, relevant title (max 6 words).
+Use the user's intent, topic, or tone.
 
-        Conversation:
-        ${facts}
+Conversation:
+${facts}
 
-        Title:
-      `;
+Title:
+      `.trim();
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -66,7 +72,7 @@ function App() {
       });
 
       const data = await res.json();
-      const name = data.reply.trim().replace(/^\"|\"$/g, "");
+      const name = (data.reply || "Untitled").trim().replace(/^["']|["']$/g, "");
       setSessionName(name);
 
       await fetch("/api/save-session-name", {
@@ -79,14 +85,13 @@ function App() {
         }),
       });
 
-      setTimeout(() => {
-        fetchSessions();
-      }, 200);
+      setTimeout(() => fetchSessions(), 200);
     } catch (err) {
       console.error("❌ Failed to generate session name:", err);
     }
   };
 
+  // user enters name & starts chat
   const handleStart = async (e) => {
     e.preventDefault();
     const cleanUser = userId.toLowerCase().trim();
@@ -100,18 +105,18 @@ function App() {
     setSelectedSession(null);
     setSessionName("");
 
-    setTimeout(() => {
-      fetchSessions(cleanUser);
-    }, 300);
+    setTimeout(() => fetchSessions(cleanUser), 300);
   };
 
+  // send message
   const handleSend = async () => {
     if (!input.trim()) return;
+    const msgText = input;
+    setInput("");
 
-    const userMessage = { role: "user", text: input };
+    const userMessage = { role: "user", text: msgText };
     const updatedChat = [...chat, userMessage];
     setChat(updatedChat);
-    setInput("");
     setLoading(true);
 
     try {
@@ -119,7 +124,7 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: input,
+          message: msgText,
           user_id: userId,
           session_id: sessionId,
         }),
@@ -130,30 +135,32 @@ function App() {
       const newChat = [...updatedChat, botMessage];
       setChat(newChat);
 
-      const userMessages = newChat.filter((msg) => msg.role === "user");
-      if (userMessages.length === 3 && sessionName === "" && newChat.length >= 5) {
-        generateSessionName(newChat);
+      if (!sessionName) {
+        const userMsgs = newChat.filter((m) => m.role === "user");
+        if (userMsgs.length === 3) {
+          generateSessionName(newChat);
+        }
       }
     } catch (err) {
       console.error("❌ Error talking to backend:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  // start new chat
   const handleNewSession = () => {
     const newSessionId = generateSessionId(userId);
     setSessionId(newSessionId);
     setChat([]);
     setSelectedSession(null);
     setSessionName("");
-    setTimeout(() => {
-      fetchSessions();
-    }, 200);
+    setTimeout(() => fetchSessions(), 200);
   };
 
-  const handleSessionSelect = async (e) => {
-    const selected = e.target.value;
+  // load session from dropdown
+  const handleSessionSelect = async (eOrValue) => {
+    const selected = typeof eOrValue === "string" ? eOrValue : eOrValue.target.value;
     setSelectedSession(selected);
     setSessionId(selected);
     try {
@@ -163,7 +170,13 @@ function App() {
         body: JSON.stringify({ user_id: userId, session_id: selected }),
       });
       const data = await res.json();
-      setChat(data.chat || []);
+      // DB returns {chat:[...]} with role 'user' & 'bot'
+      // Normalize to user/assistant for UI
+      const normalized = (data.chat || []).map((m) => ({
+        role: m.role === "bot" ? "assistant" : m.role,
+        text: m.text,
+      }));
+      setChat(normalized);
     } catch (err) {
       console.error("Error loading chat:", err);
     }
@@ -208,11 +221,7 @@ function App() {
             <Dropdown
               sessions={sessions}
               selectedSession={selectedSession}
-              onSelect={(value) => {
-                setSelectedSession(value);
-                setSessionId(value);
-                handleSessionSelect({ target: { value } });
-              }}
+              onSelect={(value) => handleSessionSelect(value)}
             />
           )}
 
@@ -222,7 +231,10 @@ function App() {
             style={{ height: "400px", scrollBehavior: "smooth" }}
           >
             {chat.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                key={idx}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
                 <div
                   className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-lg ${
                     msg.role === "user"
