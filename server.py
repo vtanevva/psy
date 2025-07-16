@@ -210,5 +210,12 @@ def serve_frontend(path):
 # Local dev (not used in Gunicorn container runtime)
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "5555"))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    raw_port = os.environ.get("PORT", "5555")
+    try:
+        port = int(raw_port)
+    except ValueError:
+        print(f"[WARN] Invalid PORT value {raw_port!r}; falling back to 5555", flush=True)
+        port = 5555
+
+    # Production-safe run (no reloader, no debug)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
