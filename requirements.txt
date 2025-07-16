@@ -8,6 +8,7 @@ transformers==4.38.2
 tiktoken
 numpy==1.26.4
 pinecone
+pymongo
 flask
 flask-cors
 gunicorn
