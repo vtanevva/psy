@@ -23,4 +23,4 @@ RUN npm install && npm run build
 
 # Return to root app dir and run server
 WORKDIR /app
-CMD gunicorn server:app -b 0.0.0.0:$PORT
+CMD ["sh", "-c", "gunicorn server:app -b 0.0.0.0:${PORT:-10000}"]
