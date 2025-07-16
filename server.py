@@ -53,7 +53,7 @@ def save_message(user_id, session_id, user_message, bot_reply, emotion=None, sui
     )
 
 # ============ CHAT ENDPOINT ============
-@app.route("/chat", methods=["POST"])
+@app.route("/api/chat", methods=["POST"])
 def chat():
     data = request.get_json()
     user_message = data.get("message", "").strip()
@@ -94,7 +94,7 @@ def chat():
         return jsonify({"reply": "Something went wrong. Please try again."}), 500
 
 # ============ SESSIONS ============
-@app.route("/sessions-log", methods=["POST"])
+@app.route("/api/sessions-log", methods=["POST"])
 def sessions_log():
     data = request.get_json()
     user_id = data.get("user_id")
@@ -107,14 +107,14 @@ def sessions_log():
     session_list = [{"session_id": sid, "name": name} for sid, name in session_map.items()]
     return jsonify({"sessions": session_list})
 
-@app.route("/session_chat", methods=["POST"])
+@app.route("/api/session_chat", methods=["POST"])
 def session_chat():
     user_id = request.json.get("user_id")
     session_id = request.json.get("session_id")
     entry = conversations.find_one({"user_id": user_id, "session_id": session_id})
     return jsonify({"chat": entry.get("messages", []) if entry else []})
 
-@app.route("/save-session-name", methods=["POST"])
+@app.route("/api/save-session-name", methods=["POST"])
 def save_session_name():
     data = request.get_json()
     db.conversations.update_one(
@@ -124,7 +124,7 @@ def save_session_name():
     )
     return jsonify({"status": "ok"})
 
-@app.route("/test-mongo")
+@app.route("/api/test-mongo")
 def test_mongo():
     conversations.insert_one({"msg": "Mongo is working!", "timestamp": datetime.utcnow()})
     return jsonify({"status": "success"})
