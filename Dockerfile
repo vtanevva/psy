@@ -42,4 +42,4 @@ RUN npm run build
 WORKDIR /app
 EXPOSE 10000
 # Shell form so $PORT expands; fallback 10000
-CMD sh -c "gunicorn server:app -b 0.0.0.0:${PORT:-10000}"
+CMD ["python", "server.py"]
