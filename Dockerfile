@@ -1,32 +1,45 @@
-# Use a stable Python base
+# ----------------------------
+# Base image
+# ----------------------------
 FROM python:3.10-slim
 
-# Prevent Python from writing .pyc files & buffering
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Workdir
 WORKDIR /app
 
-# Install Node.js (for building React frontend)
-RUN apt-get update && apt-get install -y curl && \
+# ----------------------------
+# System deps incl. Node.js
+# ----------------------------
+RUN apt-get update && apt-get install -y curl git build-essential && \
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy project
-COPY . .
+# ----------------------------
+# Python deps (layer-cached)
+# ----------------------------
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Python deps
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-
-# Build frontend
+# ----------------------------
+# Frontend deps (layer-cached)
+# ----------------------------
+COPY my-chatbot/package*.json my-chatbot/
 WORKDIR /app/my-chatbot
-RUN npm install && npm run build
+RUN npm ci || npm install
 
-# Back to root (Flask/Gunicorn)
+# ----------------------------
+# Copy rest of source & build frontend
+# ----------------------------
+COPY . /app
+WORKDIR /app/my-chatbot
+RUN npm run build
+
+# ----------------------------
+# Final runtime
+# ----------------------------
 WORKDIR /app
-
-# Use shell form so $PORT expands; default 10000 if not set
+EXPOSE 10000
+# Shell form so $PORT expands; fallback 10000
 CMD sh -c "gunicorn server:app -b 0.0.0.0:${PORT:-10000}"
