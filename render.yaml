@@ -1,11 +1,8 @@
 services:
   - type: web
     name: mental-chatbot
-    env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      (cd my-chatbot && npm install && npm run build)
-    startCommand: gunicorn server:app -b 0.0.0.0:10000
+    env: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: OPENAI_API_KEY
         sync: false
@@ -15,4 +12,3 @@ services:
         sync: false
       - key: PINECONE_ENV
         sync: false
-    rootDir: .
